@@ -1,7 +1,20 @@
 import 'package:flutter/material.dart';
+// Riverpod を使用するために必要なインポート
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+// StateProvider: シンプルな状態管理を行うProvider
+// int型の値を保持し、外部から読み取り・更新が可能
+// 初期値として0を設定
+final counterProvider = StateProvider<int>((ref) => 0);
 
 void main() {
-  runApp(const MyApp());
+  runApp(
+    // ProviderScope: アプリ全体でProviderを使用可能にするためのルートWidget
+    // すべてのProviderはこのScope内でのみ利用可能
+    const ProviderScope(
+      child: MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -19,30 +32,25 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class MyHomePage extends StatefulWidget {
+// ConsumerWidget: Providerを使用するためのWidget基底クラス
+// StatefulWidgetの代わりに使用し、WidgetRefを通じてProviderにアクセス可能
+class MyHomePage extends ConsumerWidget {
   const MyHomePage({super.key, required this.title});
 
   final String title;
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
+  // build メソッドに WidgetRef が追加される
+  // WidgetRef: Providerとの橋渡しを行うオブジェクト
+  Widget build(BuildContext context, WidgetRef ref) {
+    // ref.watch(): Providerの値を監視し、値が変更されると自動的にWidgetを再ビルド
+    // StateProviderの現在の値を取得
+    final counter = ref.watch(counterProvider);
 
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-  void _incrementCounter() {
-    setState(() {
-      _counter++;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: Text(widget.title),
+        title: Text(title),
       ),
       body: Center(
         child: Column(
@@ -50,14 +58,19 @@ class _MyHomePageState extends State<MyHomePage> {
           children: <Widget>[
             const Text('You have pushed the button this many times:'),
             Text(
-              '$_counter',
+              '$counter', // watchで取得した値を表示
               style: Theme.of(context).textTheme.headlineMedium,
             ),
           ],
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
+        onPressed: () {
+          // ref.read(): Providerの値を一度だけ読み取り（監視しない）
+          // .notifier: StateProviderの状態を変更するためのNotifierを取得
+          // .state++: 状態を直接更新（自動的にリスナーに通知される）
+          ref.read(counterProvider.notifier).state++;
+        },
         tooltip: 'Increment',
         child: const Icon(Icons.add),
       ),
