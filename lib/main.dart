@@ -1,11 +1,21 @@
 import 'package:flutter/material.dart';
 // Riverpod を使用するために必要なインポート
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-// StateProvider: シンプルな状態管理を行うProvider
-// int型の値を保持し、外部から読み取り・更新が可能
-// 初期値として0を設定
-final counterProvider = StateProvider<int>((ref) => 0);
+part 'main.g.dart';
+
+@riverpod
+class Counter extends _$Counter {
+  @override
+  int build() {
+    return 0;
+  }
+
+  void increment() {
+    state = state + 1;
+  }
+}
 
 void main() {
   runApp(
@@ -44,7 +54,6 @@ class MyHomePage extends ConsumerWidget {
   // WidgetRef: Providerとの橋渡しを行うオブジェクト
   Widget build(BuildContext context, WidgetRef ref) {
     // ref.watch(): Providerの値を監視し、値が変更されると自動的にWidgetを再ビルド
-    // StateProviderの現在の値を取得
     final counter = ref.watch(counterProvider);
 
     return Scaffold(
@@ -58,7 +67,7 @@ class MyHomePage extends ConsumerWidget {
           children: <Widget>[
             const Text('You have pushed the button this many times:'),
             Text(
-              '$counter', // watchで取得した値を表示
+              '$counter',
               style: Theme.of(context).textTheme.headlineMedium,
             ),
           ],
@@ -66,10 +75,7 @@ class MyHomePage extends ConsumerWidget {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          // ref.read(): Providerの値を一度だけ読み取り（監視しない）
-          // .notifier: StateProviderの状態を変更するためのNotifierを取得
-          // .state++: 状態を直接更新（自動的にリスナーに通知される）
-          ref.read(counterProvider.notifier).state++;
+          ref.read(counterProvider.notifier).increment();
         },
         tooltip: 'Increment',
         child: const Icon(Icons.add),
